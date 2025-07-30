@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+.layout-cotizacion-imprimir {
+  display: none;
+}
+
+@media print {
+  .layout-cotizacion-imprimir {
+    display: block !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: Letter portrait;
+    
+  }
+}
