@@ -11,6 +11,9 @@ interface PrintableLayoutProps {
 }
 
 export const PrintableLayout: React.FC<PrintableLayoutProps> = ({ printRef, products, subtotal, total, iva }) => (
+
+  
+
   <div ref={printRef} className="layout-cotizacion-imprimir">
     <LayoutQuote products={products} subtotal={subtotal} iva={iva} total={total} />
   </div>

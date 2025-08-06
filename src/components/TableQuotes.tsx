@@ -21,7 +21,7 @@ interface Props {
 
 export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatusProduct, selectSimilarity, handlesSetPriceTotal, handleSetDisccount }) => {
 
-  console.log({ quote })
+  
 
 
   const [productosExpandidos, setProductosExpandidos] = useState(new Set());
@@ -287,10 +287,10 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                   item.similarities && productosExpandidos.has(item.id) && (
                     <tr>
                       <td colSpan={headers.length} className='bg-gray-50  px-6 py-4'>
-                        <div className='space-y-3'>
+                        <div className='space-y-3 '>
                           <h1>Productos similares encontrados {item.similarities?.length}</h1>
 
-                          <div className='grid grid-cols-1 gap-4'>
+                          <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4'>
                             {
                               item.similarities?.map((s) => (
                                 <ExpandedRow
@@ -298,7 +298,7 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                                   similarity={s}
                                   selectSimilarity={selectedSimilarity}
                                   productId={item.id}
-                                  isSelected={item.selected?.id === s.id}
+                                  selected={item.selectedWarehouse}
                                 />
                               ))
                             }

@@ -12,6 +12,9 @@ interface Props {
 
 
 export const LayoutQuote: FC<Props> = ({ products, subtotal, iva, total }) => {
+
+
+  const productsWithCost = products.filter((product)=> product.precioUnitario > 0)
   // const items = [
   //   { id: 1, cant: 1.00, um: "PZ", descripcion: "TEE DE ACERO ROSCADA 210 KGS. DE 19 MM. ( 3/4\" 3000 LBS. )", precioUni: 91.25, descto: "", importeTotal: 91.25 },
   //   { id: 2, cant: 1.00, um: "PZ", descripcion: "REDUCCION BUSHING DE ACERO 420 KGS. DE 19 X 6 MM. ( 3/4\" X 1/4\" 6000 )", precioUni: 45.30, descto: "", importeTotal: 45.30 },
@@ -125,7 +128,7 @@ export const LayoutQuote: FC<Props> = ({ products, subtotal, iva, total }) => {
             </tr>
           </thead>
           <tbody>
-            {products.map((item, index) => (
+            {productsWithCost.map((item, index) => (
               <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="border-r border-gray-300 p-2 text-center">{index + 1}</td>
                 <td className="border-r border-gray-300 p-2 text-right">{formatNumber(item.cantidad)}</td>
