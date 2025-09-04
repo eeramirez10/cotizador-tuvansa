@@ -1,6 +1,8 @@
 
+import { Provider } from 'react-redux'
 import './App.css'
 import { Home } from './pages/home/Home'
+import { store } from './store/store';
 
 
 function App() {
@@ -8,7 +10,11 @@ function App() {
 
   return (
     <>
-      <Home />
+      <Provider store={store}>
+
+        <Home />
+
+      </Provider>
     </>
   )
 }

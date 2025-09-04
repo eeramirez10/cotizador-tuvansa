@@ -1,35 +1,22 @@
 import { CheckCircle, ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react'
-import React, { useState, type FC } from 'react'
-import { fetchSimilarities } from '../services/quote/api'
+import React, {  type FC } from 'react'
 import { ExpandedRow } from './ExpandedRow'
-import { BadgeStatus, type Status } from './BadgeStatus'
+import { BadgeStatus, } from './BadgeStatus'
 import { formatCurrency } from '../config/utils/format';
-import type { Product, Similarity } from '../services/quote/types'
-import { getWarehouses } from '../services/branchOffice/api'
-
-
-interface Props {
-
-  quote: Product[]
-  handleSetSimilarities: (similarities: Similarity[], productId: string) => void
-  setStatusProduct: (status: Status, productId: string) => void
-  selectSimilarity: (productId: string, warehouseId: string, similarity: Similarity) => void
-  handlesSetPriceTotal: (price: number, productId: string) => void
-  handleSetDisccount: (discount: number, productId: string) => void
-  
-}
-
-export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatusProduct, selectSimilarity, handlesSetPriceTotal, handleSetDisccount }) => {
-
-  
-
-
-  const [productosExpandidos, setProductosExpandidos] = useState(new Set());
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setLoading] = useState(false)
+import type { Similarity } from '../services/quote/types'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useProducts } from '../hooks/useProducts';
+import { UtilityInput } from './UtilityInput';
+import { useToggle } from '../shared/UI/hooks/useToggle';
 
 
 
+
+export const TableQuotes = () => {
+
+
+  const { handleFindSimilarities, fetchingSimilarities, products: quote, handleUpdateStatus, handleSelectSimilarity, handleSetDisccount, handleUpdatePrice } = useProducts()
+  const { toggle:productosExpandidos, handleToggleExpansion:toggleExpansion } = useToggle()
 
   const hadleChageValue = (value: string, productId: string, field: 'price' | 'discount') => {
 
@@ -39,14 +26,14 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
     if (field === 'price') {
 
       if (value === '' || isNaN(newValue)) {
-        handlesSetPriceTotal(0, productId)
+        handleUpdatePrice(0, productId)
 
         return
       }
 
       // Solo acepta hasta 2 decimales
       if (/^\d*\.?\d{0,2}$/.test(value)) {
-        handlesSetPriceTotal(newValue, productId)
+        handleUpdatePrice(newValue, productId)
       }
 
       return
@@ -69,74 +56,9 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
 
   }
 
-  const toggleExpansion = (productoId: string) => {
-
-    setProductosExpandidos(prev => {
-      const nuevo = new Set(prev)
-      if (nuevo.has(productoId)) {
-        nuevo.delete(productoId)
-      } else {
-        nuevo.add(productoId)
-      }
-      return nuevo
-    })
-  }
-
   const selectedSimilarity = async (productId: string, warehouseId: string, similarity: Similarity) => {
-    selectSimilarity(productId, warehouseId, similarity)
-    setStatusProduct('seleccionado', productId)
-
-  }
-
-  const handleFindSimilarities = async (description: string, productId: string) => {
-
-    setStatusProduct('buscando', productId)
-    try {
-      setLoading(true)
-
-      let similarities = await fetchSimilarities(description)
-
-      for (const similarity of similarities) {
-
-        const warehouse = await getWarehouses(similarity.id)
-
-
-        similarities = [
-
-          ...similarities.map((sm) => {
-            if (sm.id === similarity.id) {
-
-              return {
-                ...sm,
-                warehouses: [...warehouse]
-              }
-            }
-            return sm
-          })
-        ]
-        // handleAddWarehouses(warehouse, productId, similarity.id)
-
-      }
-
-
-
-      if (similarities.length === 0) setStatusProduct('rechazado', productId)
-
-      if (similarities.length > 0) setStatusProduct('candidatos', productId)
-
-      handleSetSimilarities(similarities, productId)
-
-
-
-
-    } catch (error) {
-      console.log(error)
-      setStatusProduct('error', productId)
-    } finally {
-      setLoading(false)
-
-    }
-
+    handleSelectSimilarity(productId, warehouseId, similarity)
+    handleUpdateStatus('seleccionado', productId)
 
   }
 
@@ -148,16 +70,17 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
     { title: 'EAN' },
     { title: 'Costo' },
     { title: 'Precio' },
-    { title: 'Desc' },
-    { title: 'Total' },
+    { title: 'Utilidad' },
+    { title: 'Subtotal' },
+    // { title: 'Total' },
     { title: 'Estado' },
     { title: 'Acciones' },
   ]
 
 
   return (
-    <div className='overflow-scroll'>
-      <table className='w-full '>
+    <div className='h-[60vh]  overflow-auto rounded-lg'>
+      <table className='w-full'>
         <thead className='bg-gray-50 '>
           <tr>
             {
@@ -184,7 +107,7 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                           onClick={() => toggleExpansion(item.id)}
                         >
                           {
-                            productosExpandidos.has(item.id) ?
+                            productosExpandidos[item.id] ?
                               (<ChevronUp className='w-4 h-4 mr-2 text-gray-600 ' />)
                               :
                               (<ChevronDown className='w-4 h-4 mr-2 text-gray-600 ' />)
@@ -221,7 +144,12 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                     />
                   </td>
 
-                  <td className='px-3 py-4 whitespace-nowrap '>
+                  <td className='px-3 py-4 '>
+
+                    <UtilityInput productId={item.id} value={item.margenUtilidad} />
+                  </td>
+
+                  {/* <td className='px-3 py-4 whitespace-nowrap '>
 
                     <CustomNumberInput
                       value={item.descuento.toString()}
@@ -229,12 +157,14 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                       productId={item.id}
                       field='discount'
                     />
-                  </td>
-
-
+                  </td> */}
                   <td className='px-3 py-4 whitespace-nowrap text-green-600 font-semibold text-sm'>
-                    {formatCurrency(item.total)}
+                    {formatCurrency(item.subtotal)}
                   </td>
+
+                  {/* <td className='px-3 py-4 whitespace-nowrap text-green-600 font-semibold text-sm'>
+                    {formatCurrency(item.total)}
+                  </td> */}
 
                   <td className='px-3 py-4 whitespace-nowra'>
 
@@ -260,10 +190,10 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                           handleFindSimilarities(item.description, item.id)
                         }
                       }}
-                      // disabled={loading || item.status === 'seleccionado'}
-                      >
+                    // disabled={loading || item.status === 'seleccionado'}
+                    >
 
-                      {item.status === 'buscando' ? (
+                      {fetchingSimilarities[item.id] ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                           Buscando...
@@ -283,16 +213,21 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                   </td>
                 </tr>
 
-                {
-                  item.similarities && productosExpandidos.has(item.id) && (
+                <AnimatePresence initial={false}>
+                  {item.similarities && productosExpandidos[item.id] && (
                     <tr>
-                      <td colSpan={headers.length} className='bg-gray-50  px-6 py-4'>
-                        <div className='space-y-3 '>
-                          <h1>Productos similares encontrados {item.similarities?.length}</h1>
-
-                          <div className='grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4'>
-                            {
-                              item.similarities?.map((s) => (
+                      <td colSpan={headers.length} className="bg-gray-50 px-6 py-0">
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.28, ease: 'easeInOut' }}
+                          style={{ overflow: 'hidden' }}
+                        >
+                          <div className="space-y-3 py-4">
+                            <h1>Productos similares encontrados {item.similarities?.length}</h1>
+                            <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4">
+                              {item.similarities?.map((s) => (
                                 <ExpandedRow
                                   key={s.ean}
                                   similarity={s}
@@ -300,18 +235,14 @@ export const TableQuotes: FC<Props> = ({ quote, handleSetSimilarities, setStatus
                                   productId={item.id}
                                   selected={item.selectedWarehouse}
                                 />
-                              ))
-                            }
+                              ))}
+                            </div>
                           </div>
-
-                        </div>
-
+                        </motion.div>
                       </td>
                     </tr>
-
-
-                  )
-                }
+                  )}
+                </AnimatePresence>
 
 
               </React.Fragment>
@@ -336,15 +267,12 @@ interface CustomNumberInputPorps {
 
 export const CustomNumberInput: FC<CustomNumberInputPorps> = ({ value, hadleChageValue, productId, field }) => {
 
-
-
-
-
+  const price = formatCurrency(Number(value))
   return (
     <input
       type="text"
       inputMode="decimal"
-      value={value}
+      value={price}
       onChange={(e) => hadleChageValue(e.target.value, productId, field)}
       className='border-1 border-gray-300 rounded-md  text-sm text-gray-700 pl-2  py-1.5 w-20 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
     />

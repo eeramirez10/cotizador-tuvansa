@@ -1,14 +1,7 @@
-import { Star } from "lucide-react"
-
 import type { FC } from "react"
-
+import { Star } from "lucide-react"
 import { formatCurrency } from "../config/utils/format"
 import type { Similarity, Warehouse } from "../services/quote/types"
-
-
-
-
-
 
 interface Props {
   similarity: Similarity

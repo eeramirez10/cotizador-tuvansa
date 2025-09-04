@@ -14,25 +14,7 @@ export interface Warehouse {
 }
 
 
-export interface Product  {
-  id: string
-  description: string
-  cantidad: number
-  unidad: string
 
-  codigo: string
-  ean: string
-  status: Status
-  similarities?: Similarity[]
-  selected?: Similarity
-  selectedWarehouse?: Warehouse
-  precioUnitario: number,
-  costoUnitario: number,
-  descuento: number,
-  subtotal: number,
-  total: number
-
-}
 
 
 export interface Quotation {
@@ -58,3 +40,36 @@ export interface SimilaritiesResponse {
   values: number[],
   metadata: Metadata
 }
+
+
+
+
+
+
+// export enum Status {
+//   PENDING = 'PENDING',
+//   COMPLETED = 'COMPLETED',
+//   ERROR = 'ERROR'
+// }
+
+export type Status = 'pendiente' | 'buscando' | 'seleccionado' | 'candidatos' | 'rechazado' | 'error'
+
+export interface Product {
+  id: string
+  description: string
+  cantidad: number
+  unidad: string
+  codigo: string
+  ean: string
+  status: Status
+  margenUtilidad?: number
+  similarities?: Similarity[]
+  selected?: Similarity
+  selectedWarehouse?: Warehouse
+  precioUnitario: number
+  costoUnitario: number
+  descuento: number
+  subtotal: number
+  total: number
+}
+
